@@ -88,22 +88,23 @@
         }
 
         /* 左側：遊戲棋盤區 (2D 俯視) */
+/* 左側：遊戲棋盤區 (2D 俯視) */
         #board-wrapper {
             flex: 3;
             display: flex;
-            justify-content: center;
-            align-items: center;
+            justify-content: flex-start; /* 從左上角開始排 */
+            align-items: flex-start;
             background-color: var(--bg-dark);
             position: relative;
-            overflow: hidden;
+            overflow: auto; /* 允許滑鼠滾動拖曳地圖 */
+            padding: 40px; /* 留出邊距 */
         }
 
         #board {
             position: relative;
-            width: 900px;
-            height: 900px;
-            background-color: var(--board-bg);
-            border: var(--pixel-border);
+            min-width: 1260px; /* 確保能容納 20 格 * 60px */
+            min-height: 1260px;
+            background-color: transparent;
         }
 
         .cell {
@@ -121,26 +122,25 @@
             font-size: 0.65rem;
             font-weight: bold;
             text-align: center;
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.3); /* 增加格子立體感 */
         }
 
-        /* 玩家像素棋子 */
+        /* 玩家像素棋子 (升級版) */
         .player-token {
             position: absolute;
-            width: 24px;
-            height: 24px;
-            border: 2px solid #000;
-            border-radius: 4px; /* 微微圓角但保持方塊感 */
-            z-index: 10;
+            width: 32px;
+            height: 32px;
+            border: 3px solid #FFF;
+            border-radius: 50%; /* 圓形頭像框 */
+            z-index: 50; /* 確保在格子最上層 */
             display: flex;
             justify-content: center;
             align-items: center;
             font-weight: bold;
-            font-size: 12px;
-            color: white;
-            transition: all 0.3s steps(4); /* 移動時有逐格動畫感 */
-            box-shadow: 2px 2px 0px rgba(0,0,0,0.5);
+            font-size: 18px; /* 放大圖示 */
+            transition: all 0.3s steps(4);
+            box-shadow: 2px 2px 6px rgba(0,0,0,0.8);
         }
-
         /* 右側：UI 資訊與操作區 */
         #ui-wrapper {
             flex: 1;
@@ -308,30 +308,30 @@
     <script>
     // ================= 1. 核心資料庫 (對應 Excel 企劃書) =================
 
-        // 角色與天賦設定
+// 角色與天賦設定 (新增 avatar 圖示)
         const roleData = {
             law: { 
-                name: "國考戰神", color: "#3B82F6", 
+                name: "國考戰神", color: "#3B82F6", avatar: "⚖️",
                 quotes: { buy: "程序合法，謝謝指教。", pay: "這違反比例原則，我要上訴！", win: "這筆財產沒有法律爭議。", bankrupt: "我要申請破產保護..." },
                 talentDesc: "法源依據：需付過路費或遭陷害時，15%機率免責免罰。"
             },
             comm: { 
-                name: "爆肝網美", color: "#EC4899", 
+                name: "爆肝網美", color: "#EC4899", avatar: "📱",
                 quotes: { buy: "採光超讚，買來拍 Vlog！", pay: "能發限動幫你業配抵債嗎？", win: "感謝乾爹贊助！", bankrupt: "我的流量...變現失敗..." },
                 talentDesc: "社群影響：開局自帶300點，點數商店購買卡片八折。"
             },
             soc: { 
-                name: "社運實踐", color: "#10B981", 
+                name: "社運實踐", color: "#10B981", avatar: "📢",
                 quotes: { buy: "這筆預算能化為社會影響力！", pay: "當作贊助你的專案啦。", win: "專案資金終於有著落了！", bankrupt: "資源重分配失敗..." },
                 talentDesc: "預算精算：升級房屋時，享有 20% 的折扣。"
             },
             bus: { 
-                name: "華爾街狼", color: "#F59E0B", 
+                name: "華爾街狼", color: "#F59E0B", avatar: "💼",
                 quotes: { buy: "看這 ROI，絕對穩賺不賠。", pay: "這點沉沒成本不算什麼。", win: "現金流才是王道。", bankrupt: "槓桿開太大，斷頭了..." },
                 talentDesc: "投資金童：初始資金加一萬，銀行存錢利息+0.5%。"
             },
             art: { 
-                name: "百年詩人", color: "#8B5CF6", 
+                name: "百年詩人", color: "#8B5CF6", avatar: "📜",
                 quotes: { buy: "千金難買這獨特的人文底蘊。", pay: "金錢不過是世俗的枷鎖，拿去。", win: "浪漫的餽贈。", bankrupt: "窮得只剩下詩了..." },
                 talentDesc: "人文底蘊：購得特定山區建築，過路費大幅加成。"
             }
@@ -497,18 +497,16 @@
             updatePlayerPositions();
         }
 
-        function updatePlayerPositions() {
-            const cellSize = 60;
+        function createPlayers() {
             players.forEach(p => {
-                if (p.status === 'bankrupt') return;
-                const cell = mapData[p.pos];
-                const token = document.getElementById('token-' + p.id);
-                // 讓同一格的玩家稍微錯開
-                const pxOffset = (p.id % 2 === 0 ? 15 : -5);
-                const pyOffset = (p.id > 2 ? 15 : -5);
-                token.style.left = (cell.x * cellSize + 15 + pxOffset) + 'px';
-                token.style.top = (cell.y * cellSize + 15 + pyOffset) + 'px';
+                const token = document.createElement('div');
+                token.className = 'player-token';
+                token.id = 'token-' + p.id;
+                token.style.backgroundColor = p.color;
+                token.innerText = p.role.avatar; // 顯示角色專屬 Emoji
+                boardEl.appendChild(token);
             });
+            updatePlayerPositions();
         }
 
         function updateUI() {
