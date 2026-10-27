@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>政大富翁 - 像素復古版</title>
+    <style>
+        /* --- 像素復古風顏色與字體變數 --- */
+        :root {
+            --bg-dark: #111827; /* 深色背景 */
+            --panel-bg: #1F2937; /* 面板背景 */
+            --text-main: #F3F4F6; /* 主文字顏色 */
+            --text-highlight: #FBBF24; /* 強調/黃色文字 */
+            --border-color: #4B5563; /* 邊框顏色 */
+            --board-bg: #374151; /* 棋盤區背景 */
+            --cell-bg: #F9FAFB; /* 格子背景 */
+            --pixel-border: 4px solid var(--border-color); /* 粗邊框模擬像素感 */
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace, 'Microsoft JhengHei'; /* 使用等寬字體增加復古感 */
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            /* 讓所有圖片/元素邊緣保持銳利 (Pixelated) */
+            image-rendering: pixelated; 
+        }
+
+        /* --- 復古 UI 面板組件 --- */
+        .retro-panel {
+            background-color: var(--panel-bg);
+            border: var(--pixel-border);
+            box-shadow: 4px 4px 0px 0px #000000; /* 硬陰影創造立體方塊感 */
+            padding: 15px;
+            color: var(--text-main);
+        }
+
+        h2, h3 {
+            color: var(--text-highlight);
+            margin-top: 0;
+            border-bottom: 2px dashed var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        button {
+            background-color: var(--text-highlight);
+            color: var(--bg-dark);
+            border: 4px solid #D97706;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 1rem;
+            padding: 8px 16px;
+            cursor: pointer;
+            box-shadow: inset -4px -4px 0px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+        }
+
+        button:active {
+            transform: scale(0.95);
+            box-shadow: inset 4px 4px 0px rgba(0,0,0,0.2);
+        }
+
+        button:disabled {
+            background-color: #6B7280;
+            border-color: #4B5563;
+            cursor: not-allowed;
+        }
+
+        select, input {
+            background-color: var(--bg-dark);
+            color: var(--text-highlight);
+            border: 2px solid var(--border-color);
+            padding: 5px;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        /* --- 版面配置 --- */
+        #game-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 左側：遊戲棋盤區 (2D 俯視) */
+        #board-wrapper {
+            flex: 3;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--bg-dark);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #board {
+            position: relative;
+            width: 900px;
+            height: 900px;
+            background-color: var(--board-bg);
+            border: var(--pixel-border);
+        }
+
+        .cell {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            box-sizing: border-box;
+            border: 2px solid var(--border-color);
+            background-color: var(--cell-bg);
+            color: #111;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.65rem;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* 玩家像素棋子 */
+        .player-token {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border: 2px solid #000;
+            border-radius: 4px; /* 微微圓角但保持方塊感 */
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 12px;
+            color: white;
+            transition: all 0.3s steps(4); /* 移動時有逐格動畫感 */
+            box-shadow: 2px 2px 0px rgba(0,0,0,0.5);
+        }
+
+        /* 右側：UI 資訊與操作區 */
+        #ui-wrapper {
+            flex: 1;
+            min-width: 350px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            border-left: var(--pixel-border);
+            background-color: var(--panel-bg);
+            overflow-y: auto;
+        }
+
+        /* 對話與文字提示框 */
+        #log-box {
+            flex-grow: 1;
+            background-color: var(--bg-dark);
+            border: 2px solid var(--border-color);
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        #quote-box {
+            background-color: #374151;
+            border-left: 4px solid var(--text-highlight);
+            padding: 10px;
+            font-style: italic;
+            margin-bottom: 10px;
+            display: none;
+        }
+
+        /* Modal 彈窗 (初始設定、銀行、樂透) */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
