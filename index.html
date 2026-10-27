@@ -3,204 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>政大富翁 - 像素復古版</title>
+    <title>政大富翁 - 像素岔路版 (V2)</title>
     <style>
-        /* --- 像素復古風顏色與字體變數 --- */
+        /* --- 像素復古風變數 --- */
         :root {
-            --bg-dark: #111827; /* 深色背景 */
-            --panel-bg: #1F2937; /* 面板背景 */
-            --text-main: #F3F4F6; /* 主文字顏色 */
-            --text-highlight: #FBBF24; /* 強調/黃色文字 */
-            --border-color: #4B5563; /* 邊框顏色 */
-            --board-bg: #374151; /* 棋盤區背景 */
-            --cell-bg: #F9FAFB; /* 格子背景 */
-            --pixel-border: 4px solid var(--border-color); /* 粗邊框模擬像素感 */
+            --bg-dark: #111827; 
+            --panel-bg: #1F2937; 
+            --text-main: #F3F4F6; 
+            --text-highlight: #FBBF24; 
+            --border-color: #4B5563; 
+            --board-bg: #2d3748; 
+            --cell-bg: #F9FAFB; 
+            --pixel-border: 4px solid var(--border-color);
         }
 
         body {
-            font-family: 'Courier New', Courier, monospace, 'Microsoft JhengHei'; /* 使用等寬字體增加復古感 */
+            font-family: 'Courier New', Courier, monospace, 'Microsoft JhengHei';
             background-color: var(--bg-dark);
             color: var(--text-main);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-            /* 讓所有圖片/元素邊緣保持銳利 (Pixelated) */
-            image-rendering: pixelated; 
+            margin: 0; padding: 0;
+            display: flex; flex-direction: column;
+            height: 100vh; overflow: hidden;
+            image-rendering: pixelated; /* 確保像素風格邊緣銳利 */
         }
 
-        /* --- 復古 UI 面板組件 --- */
         .retro-panel {
             background-color: var(--panel-bg);
             border: var(--pixel-border);
-            box-shadow: 4px 4px 0px 0px #000000; /* 硬陰影創造立體方塊感 */
+            box-shadow: 4px 4px 0px 0px #000000;
             padding: 15px;
             color: var(--text-main);
         }
 
-        h2, h3 {
-            color: var(--text-highlight);
-            margin-top: 0;
-            border-bottom: 2px dashed var(--border-color);
-            padding-bottom: 10px;
-        }
-
+        h2, h3 { color: var(--text-highlight); margin-top: 0; border-bottom: 2px dashed var(--border-color); padding-bottom: 10px; }
+        
         button {
             background-color: var(--text-highlight);
             color: var(--bg-dark);
             border: 4px solid #D97706;
-            font-family: inherit;
-            font-weight: bold;
-            font-size: 1rem;
-            padding: 8px 16px;
-            cursor: pointer;
+            font-family: inherit; font-weight: bold; font-size: 1rem;
+            padding: 8px 16px; cursor: pointer;
             box-shadow: inset -4px -4px 0px rgba(0,0,0,0.2);
-            transition: transform 0.1s;
         }
+        button:active { transform: scale(0.95); box-shadow: inset 4px 4px 0px rgba(0,0,0,0.2); }
+        button:disabled { background-color: #6B7280; border-color: #4B5563; cursor: not-allowed; }
+        select, input { background-color: var(--bg-dark); color: var(--text-highlight); border: 2px solid var(--border-color); padding: 5px; font-family: inherit; font-size: 1rem; }
 
-        button:active {
-            transform: scale(0.95);
-            box-shadow: inset 4px 4px 0px rgba(0,0,0,0.2);
-        }
+        /* --- 遊戲版面 --- */
+        #game-container { display: flex; width: 100%; height: 100%; }
 
-        button:disabled {
-            background-color: #6B7280;
-            border-color: #4B5563;
-            cursor: not-allowed;
-        }
-
-        select, input {
-            background-color: var(--bg-dark);
-            color: var(--text-highlight);
-            border: 2px solid var(--border-color);
-            padding: 5px;
-            font-family: inherit;
-            font-size: 1rem;
-        }
-
-        /* --- 版面配置 --- */
-        #game-container {
-            display: flex;
-            width: 100%;
-            height: 100%;
-        }
-
-        /* 左側：遊戲棋盤區 (2D 俯視) */
-/* 左側：遊戲棋盤區 (2D 俯視) */
+        /* 左側棋盤區 (可滾動) */
         #board-wrapper {
             flex: 3;
-            display: flex;
-            justify-content: flex-start; /* 從左上角開始排 */
-            align-items: flex-start;
             background-color: var(--bg-dark);
             position: relative;
-            overflow: auto; /* 允許滑鼠滾動拖曳地圖 */
-            padding: 40px; /* 留出邊距 */
+            overflow: auto; 
+            padding: 50px;
         }
 
         #board {
             position: relative;
-            min-width: 1260px; /* 確保能容納 20 格 * 60px */
-            min-height: 1260px;
-            background-color: transparent;
+            width: 1500px; /* 擴大畫布以容納不規則地圖 */
+            height: 1200px;
+            background-color: var(--board-bg);
+            background-image: radial-gradient(#4a5568 2px, transparent 2px); /* 點陣網格背景 */
+            background-size: 30px 30px;
+            border: var(--pixel-border);
+            box-shadow: inset 0 0 20px #000;
         }
 
         .cell {
             position: absolute;
-            width: 60px;
-            height: 60px;
+            width: 60px; height: 60px;
             box-sizing: border-box;
             border: 2px solid var(--border-color);
             background-color: var(--cell-bg);
             color: #111;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            font-size: 0.65rem;
-            font-weight: bold;
-            text-align: center;
-            box-shadow: 2px 2px 0 rgba(0,0,0,0.3); /* 增加格子立體感 */
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            font-size: 0.65rem; font-weight: bold; text-align: center;
+            box-shadow: 3px 3px 0 rgba(0,0,0,0.4);
+            transition: filter 0.2s;
         }
+        .cell.branch-highlight {
+            filter: drop-shadow(0 0 8px #FBBF24);
+            border-color: #FBBF24;
+            cursor: pointer;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
-        /* 玩家像素棋子 (升級版) */
+        /* --- 2D 像素人物 (純 CSS 繪製) --- */
         .player-token {
             position: absolute;
-            width: 32px;
-            height: 32px;
-            border: 3px solid #FFF;
-            border-radius: 50%; /* 圓形頭像框 */
-            z-index: 50; /* 確保在格子最上層 */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            font-size: 18px; /* 放大圖示 */
-            transition: all 0.3s steps(4);
-            box-shadow: 2px 2px 6px rgba(0,0,0,0.8);
+            width: 24px; height: 32px;
+            z-index: 50;
+            transition: all 0.3s linear; /* 移動動畫 */
+            /* 預設像素小人造型 (身體+頭部) */
+            background-color: currentColor;
+            box-shadow: 
+                inset -4px -4px 0 rgba(0,0,0,0.3),
+                2px 2px 4px rgba(0,0,0,0.5);
+            border: 2px solid #000;
+            border-radius: 4px 4px 0 0;
+            display: flex; justify-content: center;
         }
-        /* 右側：UI 資訊與操作區 */
+        .player-token::after {
+            /* 像素小人的臉部 */
+            content: '';
+            position: absolute;
+            top: 4px;
+            width: 14px; height: 8px;
+            background-color: #FFD2B1;
+            box-shadow: inset 2px 0 0 #000, inset -2px 0 0 #000; /* 眼睛 */
+        }
+        .ai-indicator {
+            position: absolute;
+            top: -15px; font-size: 10px; color: #FBBF24; font-weight: bold;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        /* --- 像素地標 (CSS 裝飾) --- */
+        .landmark {
+            position: absolute;
+            pointer-events: none;
+            z-index: 5;
+            font-size: 0.8rem; color: #fff; text-shadow: 1px 1px 0 #000;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .pixel-art-zoo {
+            width: 80px; height: 60px;
+            background: #2E8B57; border: 4px solid #006400;
+            position: relative;
+        }
+        .pixel-art-zoo::before { content: '🐘🐅'; font-size: 24px; }
+        
+        .pixel-art-gondola {
+            width: 40px; height: 40px;
+            background: #4682B4; border: 4px solid #1E90FF;
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+        }
+        .pixel-art-gondola::before { content: '🚠'; font-size: 20px; }
+
+        /* --- 右側 UI 面板 --- */
         #ui-wrapper {
-            flex: 1;
-            min-width: 350px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            border-left: var(--pixel-border);
-            background-color: var(--panel-bg);
+            flex: 1; min-width: 350px; padding: 20px;
+            display: flex; flex-direction: column; gap: 15px;
+            border-left: var(--pixel-border); background-color: var(--panel-bg);
             overflow-y: auto;
         }
-
-        /* 對話與文字提示框 */
         #log-box {
-            flex-grow: 1;
-            background-color: var(--bg-dark);
-            border: 2px solid var(--border-color);
-            padding: 10px;
-            overflow-y: auto;
-            font-size: 0.85rem;
-            line-height: 1.5;
+            flex-grow: 1; background-color: var(--bg-dark); border: 2px solid var(--border-color);
+            padding: 10px; overflow-y: auto; font-size: 0.85rem; line-height: 1.5;
         }
-
-        #quote-box {
-            background-color: #374151;
-            border-left: 4px solid var(--text-highlight);
-            padding: 10px;
-            font-style: italic;
-            margin-bottom: 10px;
-            display: none;
-        }
-
-        /* Modal 彈窗 (初始設定、銀行、樂透) */
         .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
+            display: flex; justify-content: center; align-items: center; z-index: 100;
         }
     </style>
 </head>
 <body>
-<!-- ================= 彈窗區 (Modals) ================= -->
+    <!-- ================= 彈窗區 (Modals) ================= -->
     
-    <!-- 1. 初始設定畫面 -->
+    <!-- 1. 初始設定畫面 (新增 AI 設定) -->
     <div id="setup-modal" class="modal-overlay">
         <div class="retro-panel" style="width: 450px;">
             <h2>🏫 政大富翁 - 入學設定</h2>
+            
             <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                <label>玩家人數:</label>
-                <select id="player-count" onchange="updatePlayerSelectors()">
+                <label>總遊玩人數:</label>
+                <select id="total-count" onchange="updatePlayerSelectors()">
                     <option value="2">2 人</option>
                     <option value="3">3 人</option>
-                    <option value="4">4 人</option>
+                    <option value="4" selected>4 人</option>
                 </select>
             </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <label>真人玩家數 (其餘為AI):</label>
+                <select id="human-count" onchange="updatePlayerSelectors()">
+                    <option value="1">1 人</option>
+                    <option value="2">2 人</option>
+                    <option value="3">3 人</option>
+                    <option value="4" selected>4 人</option>
+                </select>
+            </div>
+            
             <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                 <label>初始資金:</label>
                 <select id="init-money">
@@ -217,6 +204,7 @@
                     <option value="180">6 個月 (180 回合)</option>
                 </select>
             </div>
+            
             <div id="player-setup-area" style="border-top: 2px dashed var(--border-color); padding-top: 15px;">
                 <!-- 玩家選單將由 JS 動態生成 -->
             </div>
@@ -251,24 +239,24 @@
         </div>
     </div>
 
-    <!-- 4. 卡片背包系統 -->
-    <div id="bag-modal" class="modal-overlay" style="display: none;">
-        <div class="retro-panel" style="width: 400px; max-height: 80vh; overflow-y: auto;">
-            <h2>🎒 隨身背包 (卡片)</h2>
-            <div id="card-list" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
-                <!-- 擁有的卡片會顯示在這裡 -->
-            </div>
-            <button onclick="closeModal('bag-modal')" style="width: 100%; background-color: #6B7280; border-color: #4B5563;">關閉背包</button>
-        </div>
-    </div>
-
     <!-- ================= 主遊戲版面 ================= -->
     <div id="game-container">
         
-        <!-- 左側：棋盤區 -->
+        <!-- 左側：棋盤區 (可滾動) -->
         <div id="board-wrapper">
             <div id="board">
-                <!-- 75 格地圖與玩家棋子將由 JS 生成 -->
+                <!-- 像素地標 (預先放置) -->
+                <div class="landmark pixel-art-zoo" style="left: 100px; top: 150px;">
+                    <span style="position:absolute; bottom:-25px;">木柵動物園</span>
+                </div>
+                <div class="landmark pixel-art-gondola" style="left: 950px; top: 100px;">
+                    <span style="position:absolute; bottom:-25px; white-space:nowrap;">貓空纜車</span>
+                </div>
+                <div class="landmark" style="left: 450px; top: 750px; font-size: 2rem;">
+                    🏛️<br><span style="font-size: 0.8rem;">政大精神堡壘</span>
+                </div>
+                
+                <!-- 不規則地圖與玩家棋子將由 JS 生成 -->
             </div>
         </div>
 
@@ -297,7 +285,7 @@
                 </div>
                 <div style="display: flex; gap: 10px;">
                     <button id="btn-roll" onclick="rollDice()" style="flex: 2;">🎲 擲骰子</button>
-                    <button id="btn-bag" onclick="openBag()" style="flex: 1; background-color: #3B82F6; border-color: #1D4ED8;">🎒 背包</button>
+                    <button id="btn-bag" onclick="alert('背包系統開發中')" style="flex: 1; background-color: #3B82F6; border-color: #1D4ED8;">🎒</button>
                 </div>
             </div>
 
@@ -306,96 +294,90 @@
 
     <!-- ================= JavaScript 邏輯開始 ================= -->
     <script>
-    // ================= 1. 核心資料庫 (對應 Excel 企劃書) =================
+    // ================= 1. 核心資料庫 =================
 
-// 角色與天賦設定 (新增 avatar 圖示)
         const roleData = {
-            law: { 
-                name: "國考戰神", color: "#3B82F6", avatar: "⚖️",
-                quotes: { buy: "程序合法，謝謝指教。", pay: "這違反比例原則，我要上訴！", win: "這筆財產沒有法律爭議。", bankrupt: "我要申請破產保護..." },
-                talentDesc: "法源依據：需付過路費或遭陷害時，15%機率免責免罰。"
-            },
-            comm: { 
-                name: "爆肝網美", color: "#EC4899", avatar: "📱",
-                quotes: { buy: "採光超讚，買來拍 Vlog！", pay: "能發限動幫你業配抵債嗎？", win: "感謝乾爹贊助！", bankrupt: "我的流量...變現失敗..." },
-                talentDesc: "社群影響：開局自帶300點，點數商店購買卡片八折。"
-            },
-            soc: { 
-                name: "社運實踐", color: "#10B981", avatar: "📢",
-                quotes: { buy: "這筆預算能化為社會影響力！", pay: "當作贊助你的專案啦。", win: "專案資金終於有著落了！", bankrupt: "資源重分配失敗..." },
-                talentDesc: "預算精算：升級房屋時，享有 20% 的折扣。"
-            },
-            bus: { 
-                name: "華爾街狼", color: "#F59E0B", avatar: "💼",
-                quotes: { buy: "看這 ROI，絕對穩賺不賠。", pay: "這點沉沒成本不算什麼。", win: "現金流才是王道。", bankrupt: "槓桿開太大，斷頭了..." },
-                talentDesc: "投資金童：初始資金加一萬，銀行存錢利息+0.5%。"
-            },
-            art: { 
-                name: "百年詩人", color: "#8B5CF6", avatar: "📜",
-                quotes: { buy: "千金難買這獨特的人文底蘊。", pay: "金錢不過是世俗的枷鎖，拿去。", win: "浪漫的餽贈。", bankrupt: "窮得只剩下詩了..." },
-                talentDesc: "人文底蘊：購得特定山區建築，過路費大幅加成。"
-            }
+            law: { name: "國考戰神", color: "#3B82F6", avatar: "⚖️", quotes: { buy: "程序合法，謝謝指教。", pay: "這違反比例原則，我要上訴！", win: "沒有法律爭議。", bankrupt: "申請破產保護..." } },
+            comm: { name: "爆肝網美", color: "#EC4899", avatar: "📱", quotes: { buy: "採光超讚，拍 Vlog！", pay: "發限動業配抵債嗎？", win: "感謝乾爹贊助！", bankrupt: "流量變現失敗..." } },
+            soc: { name: "社運實踐", color: "#10B981", avatar: "📢", quotes: { buy: "預算化為社會影響力！", pay: "當作贊助你的專案啦。", win: "專案資金有著落了！", bankrupt: "資源重分配失敗..." } },
+            bus: { name: "華爾街狼", color: "#F59E0B", avatar: "💼", quotes: { buy: "看這 ROI，穩賺不賠。", pay: "這點沉沒成本不算什麼。", win: "現金流才是王道。", bankrupt: "槓桿開太大，斷頭了..." } },
+            art: { name: "百年詩人", color: "#8B5CF6", avatar: "📜", quotes: { buy: "千金難買這獨特底蘊。", pay: "金錢不過是世俗枷鎖。", win: "浪漫的餽贈。", bankrupt: "窮得只剩下詩了..." } }
         };
 
-        // 75 格特殊地標配置
-        const specialCells = {
-            0: {name: "政大正門\n(起點)", type: "start"},
-            8: {name: "樂活館\n(醫院)", type: "hospital"},
-            15: {name: "靠北政大\n(命運)", type: "destiny"},
-            18: {name: "出納組\n(銀行)", type: "bank"},
-            25: {name: "財政大樂透", type: "lotto"},
-            35: {name: "體育館\n(監獄)", type: "prison"},
-            42: {name: "政大交流版\n(機會)", type: "chance"},
-            45: {name: "集英樓\n(商店)", type: "shop"},
-            55: {name: "八角亭\n(魔法屋)", type: "magic"},
-            65: {name: "出納組\n(銀行)", type: "bank"},
-            70: {name: "財政大樂透", type: "lotto"}
-        };
-
-        const propertyNames = [
-            "志希樓", "果夫樓", "研究大樓", "學思樓", "逸仙樓", "資訊大樓", "新聞館", 
-            "大智樓", "大勇樓", "大仁樓", "綜院南棟", "綜院北棟", "井塘樓", "社資中心", 
-            "商學院", "法學院", "傳播學院", "道藩樓", "百年樓", "季陶樓", "研創中心"
-        ];
-
-        // 產生 75 格環狀地圖座標 (20 x 19 的空心矩形)
-        const mapData = [];
+        const propertyNames = ["志希樓", "果夫樓", "研究大樓", "學思樓", "逸仙樓", "資訊大樓", "新聞館", "大智樓", "大勇樓", "大仁樓", "綜院南棟", "綜院北棟", "井塘樓", "社資中心", "商學院", "法學院", "傳播學院", "道藩樓", "百年樓", "季陶樓", "研創中心", "自強宿舍", "莊敬宿舍"];
         let propIndex = 0;
-        
-        // 上邊 (0~19)
-        for(let i=0; i<20; i++) createCell(i, i, 0);
-        // 右邊 (20~37)
-        for(let i=1; i<=18; i++) createCell(mapData.length, 19, i);
-        // 下邊 (38~56)
-        for(let i=18; i>=0; i--) createCell(mapData.length, i, 19);
-        // 左邊 (57~74)
-        for(let i=18; i>=1; i--) createCell(mapData.length, 0, i);
 
-        function createCell(id, x, y) {
-            let cell = specialCells[id];
-            if (!cell) {
-                // 如果不是特殊格，就分配地產或點數格
-                if (id % 5 === 0) {
-                    cell = { name: "點數格\n(+30點)", type: "points", points: 30 };
-                } else {
-                    let pName = propertyNames[propIndex % propertyNames.length];
-                    propIndex++;
-                    cell = { name: pName, type: "property", price: 1000 + (id * 30), owner: null, level: 0 };
-                    cell.rent = cell.price * 0.4;
-                }
+        // ================= 2. 建立不規則岔路地圖 =================
+        const mapNodes = {}; // 用物件存取圖論節點
+        
+        // 輔助函式：新增節點
+        function addNode(id, x, y, type = "property", specialName = "") {
+            let name = specialName;
+            let price = 0, rent = 0;
+            if (type === "property") {
+                name = propertyNames[propIndex % propertyNames.length];
+                price = 1000 + (propIndex * 50);
+                rent = price * 0.4;
+                propIndex++;
+            } else if (type === "points") {
+                name = "點數格\n(+30點)";
             }
-            cell.id = id;
-            cell.x = x;
-            cell.y = y;
-            mapData.push(cell);
+            
+            mapNodes[id] = { id, x, y, name, type, price, rent, owner: null, level: 0, next: [] };
         }
 
-        // ================= 2. 系統變數與初始化 =================
+        // --- 繪製「8字型」帶中央截徑的不規則地圖 ---
+        // 總共約 45 格。定義格子的 X, Y 座標 (乘上 80px 間距)
+        
+        // 1. 外圍大圈 (0~29)
+        // 上邊緣 (x: 1~12, y: 1)
+        for(let i=0; i<=10; i++) addNode(i, 2 + i, 1);
+        // 右邊緣 (x: 12, y: 2~12)
+        for(let i=11; i<=20; i++) addNode(i, 12, 2 + (i-11));
+        // 下邊緣 (x: 11~1, y: 12)
+        for(let i=21; i<=30; i++) addNode(i, 11 - (i-21), 12);
+        // 左邊緣 (x: 1, y: 11~2)
+        for(let i=31; i<=39; i++) addNode(i, 1, 11 - (i-31));
+
+        // 2. 中央岔路 (40~45) 從左邊 (id:35, x:1,y:7) 連接到 右邊 (id:15, x:12,y:7)
+        for(let i=40; i<=48; i++) addNode(i, 2 + (i-40), 7);
+
+        // --- 替換特殊節點 ---
+        mapNodes[0].type = "start"; mapNodes[0].name = "政大正門\n(起點)";
+        mapNodes[5].type = "lotto"; mapNodes[5].name = "財政大樂透";
+        mapNodes[10].type = "hospital"; mapNodes[10].name = "樂活館\n(醫院)";
+        mapNodes[15].type = "bank"; mapNodes[15].name = "出納組\n(銀行)";
+        mapNodes[20].type = "prison"; mapNodes[20].name = "體育館\n(監獄)";
+        mapNodes[30].type = "magic"; mapNodes[30].name = "八角亭\n(魔法)";
+        mapNodes[35].type = "shop"; mapNodes[35].name = "集英樓\n(商店)";
+        mapNodes[44].type = "bank"; mapNodes[44].name = "出納組\n(銀行)";
+
+        // 隨機安插點數格與機會命運
+        [3, 8, 18, 23, 33, 42, 47].forEach(id => { mapNodes[id].type = "points"; mapNodes[id].name = "點數格\n(+30點)"; });
+        [12, 28].forEach(id => { mapNodes[id].type = "chance"; mapNodes[id].name = "機會命運"; });
+
+        // --- 設定路徑連結 (Linked Graph) ---
+        // 串起外圈
+        for(let i=0; i<39; i++) mapNodes[i].next.push(i+1);
+        mapNodes[39].next.push(0);
+
+        // 串起中央岔路
+        for(let i=40; i<48; i++) mapNodes[i].next.push(i+1);
+        
+        // 建立岔路交會點 (左側入口與右側出口)
+        // 走到 35(左邊中間) 時，可以繼續往上(36)，或是走中間捷徑(40)
+        mapNodes[35].next.push(40);
+        // 走到 48(捷徑底端) 時，會接回右邊的 15
+        mapNodes[48].next.push(15);
+
+
+        // ================= 3. 系統變數與初始化 =================
         let players = [];
         let currentPlayerIndex = 0;
         let globalTurn = 1;
         let maxGlobalTurns = 30;
         let lottoPool = 50000;
+        let isMoving = false; // 防止連續點擊
         
         const boardEl = document.getElementById('board');
         const logBox = document.getElementById('log-box');
@@ -414,40 +396,54 @@
 
         // 動態生成設定選單
         function updatePlayerSelectors() {
-            const count = document.getElementById('player-count').value;
+            const total = parseInt(document.getElementById('total-count').value);
+            const humanSelect = document.getElementById('human-count');
+            
+            // 修正真人數量的上限 (不能大於總人數)
+            let currentHuman = parseInt(humanSelect.value);
+            humanSelect.innerHTML = '';
+            for(let i=1; i<=total; i++) {
+                humanSelect.innerHTML += `<option value="${i}">${i} 人</option>`;
+            }
+            humanSelect.value = (currentHuman > total) ? total : currentHuman;
+
             const area = document.getElementById('player-setup-area');
             area.innerHTML = '';
             const options = Object.keys(roleData).map(k => `<option value="${k}">${roleData[k].name}</option>`).join('');
-            for(let i=1; i<=count; i++) {
+            for(let i=1; i<=total; i++) {
                 area.innerHTML += `
                     <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <label>玩家 ${i} 角色:</label>
+                        <label>玩家 ${i} (角色):</label>
                         <select id="p${i}-role">${options}</select>
                     </div>`;
             }
-            if(count >= 2) document.getElementById('p2-role').selectedIndex = 1;
-            if(count >= 3) document.getElementById('p3-role').selectedIndex = 2;
-            if(count >= 4) document.getElementById('p4-role').selectedIndex = 3;
+            if(total >= 2) document.getElementById('p2-role').selectedIndex = 1;
+            if(total >= 3) document.getElementById('p3-role').selectedIndex = 2;
+            if(total >= 4) document.getElementById('p4-role').selectedIndex = 3;
         }
-        updatePlayerSelectors();
+        updatePlayerSelectors(); // 初始化執行一次
 
-        // 正式開始遊戲
+        // ================= 4. 開始遊戲與繪製地圖 =================
         function startGame() {
-            const count = parseInt(document.getElementById('player-count').value);
+            const total = parseInt(document.getElementById('total-count').value);
+            const human = parseInt(document.getElementById('human-count').value);
             const initMoney = parseInt(document.getElementById('init-money').value);
             maxGlobalTurns = parseInt(document.getElementById('max-turns').value);
             document.getElementById('total-turns').innerText = maxGlobalTurns;
             
             players = [];
-            for(let i=1; i<=count; i++) {
+            for(let i=1; i<=total; i++) {
                 let rKey = document.getElementById(`p${i}-role`).value;
                 let role = roleData[rKey];
+                let isAI = (i > human); // 超過真人數量的就是 AI
+
                 players.push({
-                    id: i, name: `P${i}(${role.name})`, roleKey: rKey, role: role,
+                    id: i, isAI: isAI, name: `P${i}${isAI ? '(AI)' : ''}`, 
+                    roleKey: rKey, role: role,
                     money: rKey === 'bus' ? initMoney + 10000 : initMoney,
                     bank: 0, points: rKey === 'comm' ? 330 : 30,
                     pos: 0, color: role.color, status: 'normal', lottoNumber: null,
-                    inventory: [] // 背包系統預備
+                    inventory: []
                 });
             }
 
@@ -455,26 +451,33 @@
             renderBoard();
             createPlayers();
             updateUI();
-            logMessage("🎓 歡迎來到政大！像素版遊戲正式開始！");
+            logMessage("🎓 歡迎來到政大！像素岔路版遊戲正式開始！");
+
+            // 如果 P1 是 AI，直接開始回合
+            if(players[0].isAI) setTimeout(processAITurn, 1000);
         }
 
-        // ================= 3. 繪製 2D 像素地圖 =================
         function renderBoard() {
+            // 清空除了地標以外的元素
+            const landmarks = document.querySelectorAll('.landmark');
             boardEl.innerHTML = '';
-            const cellSize = 60; // 對應 CSS 的 .cell 大小
+            landmarks.forEach(l => boardEl.appendChild(l));
+
+            const cellSize = 60;
+            const spacing = 85; // 格子之間的距離
             
-            mapData.forEach(cell => {
+            Object.values(mapNodes).forEach(cell => {
                 const el = document.createElement('div');
                 el.className = 'cell';
-                el.style.left = (cell.x * cellSize) + 'px';
-                el.style.top = (cell.y * cellSize) + 'px';
+                el.style.left = (cell.x * spacing) + 'px';
+                el.style.top = (cell.y * spacing) + 'px';
                 
-                // 像素風顏色配置
-                if(cell.type === 'start') el.style.backgroundColor = '#FECACA'; // 紅
-                else if(cell.type === 'bank' || cell.type === 'shop') el.style.backgroundColor = '#A7F3D0'; // 綠
-                else if(cell.type === 'lotto' || cell.type === 'points') el.style.backgroundColor = '#FEF08A'; // 黃
-                else if(cell.type === 'hospital' || cell.type === 'prison' || cell.type === 'magic') el.style.backgroundColor = '#E5E7EB'; // 灰
-                else if(cell.type === 'chance' || cell.type === 'destiny') el.style.backgroundColor = '#DDD6FE'; // 紫
+                // 像素風格上色
+                if(cell.type === 'start') el.style.backgroundColor = '#FECACA'; 
+                else if(cell.type === 'bank' || cell.type === 'shop') el.style.backgroundColor = '#A7F3D0'; 
+                else if(cell.type === 'lotto' || cell.type === 'points') el.style.backgroundColor = '#FEF08A'; 
+                else if(cell.type === 'hospital' || cell.type === 'prison' || cell.type === 'magic') el.style.backgroundColor = '#E5E7EB'; 
+                else if(cell.type === 'chance') el.style.backgroundColor = '#DDD6FE'; 
                 
                 el.id = 'cell-' + cell.id;
                 
@@ -490,25 +493,28 @@
                 const token = document.createElement('div');
                 token.className = 'player-token';
                 token.id = 'token-' + p.id;
-                token.style.backgroundColor = p.color;
-                token.innerText = p.id;
+                token.style.color = p.color; // 用字體顏色控制身體顏色
+                // AI 標記
+                if(p.isAI) token.innerHTML = `<div class="ai-indicator">AI</div>`;
                 boardEl.appendChild(token);
             });
             updatePlayerPositions();
         }
 
-        function createPlayers() {
+        function updatePlayerPositions() {
+            const spacing = 85;
             players.forEach(p => {
-                const token = document.createElement('div');
-                token.className = 'player-token';
-                token.id = 'token-' + p.id;
-                token.style.backgroundColor = p.color;
-                token.innerText = p.role.avatar; // 顯示角色專屬 Emoji
-                boardEl.appendChild(token);
+                if (p.status === 'bankrupt') return;
+                const cell = mapNodes[p.pos];
+                const token = document.getElementById('token-' + p.id);
+                // 同一格錯開顯示
+                const pxOffset = (p.id % 2 === 0 ? 12 : -12);
+                const pyOffset = (p.id > 2 ? 10 : -10);
+                token.style.left = (cell.x * spacing + 15 + pxOffset) + 'px';
+                token.style.top = (cell.y * spacing + 10 + pyOffset) + 'px';
             });
-            updatePlayerPositions();
         }
-
+        // ================= 5. UI 與 Modal 操作 =================
         function updateUI() {
             const pPanel = document.getElementById('players-panel');
             pPanel.innerHTML = '';
@@ -517,7 +523,9 @@
                 let activeStyle = index === currentPlayerIndex ? `border-color: ${p.color}; box-shadow: 0 0 10px ${p.color};` : '';
                 pPanel.innerHTML += `
                     <div class="retro-panel" style="${activeStyle}">
-                        <div style="font-weight:bold; color:${p.color}; font-size:1.1rem; border-bottom:1px solid #4B5563; padding-bottom:5px; margin-bottom:5px;">${p.name}</div>
+                        <div style="font-weight:bold; color:${p.color}; font-size:1.1rem; border-bottom:1px solid #4B5563; padding-bottom:5px; margin-bottom:5px;">
+                            ${p.name} ${p.isAI ? '<span style="font-size:0.8rem; color:#FBBF24;">[AI]</span>' : ''}
+                        </div>
                         <div>現金: <span style="color:var(--text-highlight)">$${p.money}</span></div>
                         <div>存款: <span style="color:#10B981">$${p.bank}</span></div>
                         <div>點數: ${p.points}</div>
@@ -526,7 +534,7 @@
 
             let p = players[currentPlayerIndex];
             document.getElementById('turn-indicator').innerText = p.name;
-            document.getElementById('btn-roll').disabled = (p.status !== 'normal');
+            document.getElementById('btn-roll').disabled = isMoving || p.isAI || (p.status !== 'normal');
             
             let lottoCd = 10 - (globalTurn % 10);
             if(lottoCd === 10) lottoCd = 0;
@@ -534,113 +542,208 @@
         }
 
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-        // ================= 4. 核心遊戲迴圈 =================
-        
+        function closeModal(id) { 
+            document.getElementById(id).style.display = 'none'; 
+            endTurn();
+        }
+
+        // ================= 6. 核心遊戲迴圈與岔路控制 =================
         function rollDice() {
+            if(isMoving) return;
             const p = players[currentPlayerIndex];
+            isMoving = true;
             document.getElementById('btn-roll').disabled = true;
-            document.getElementById('btn-bag').disabled = true; // 骰骰子後不能開背包
             
             const dice = Math.floor(Math.random() * 6) + 1;
             logMessage(`🎲 <span style="color:${p.color}">${p.name}</span> 擲出了 ${dice} 點。`);
             
-            let steps = 0;
-            const moveInterval = setInterval(() => {
-                p.pos++;
-                if(p.pos >= mapData.length) {
-                    p.pos = 0;
+            movePlayerStepByStep(p, dice);
+        }
+
+        // 步進移動函式 (處理岔路)
+        function movePlayerStepByStep(p, stepsRemaining) {
+            if(stepsRemaining <= 0) {
+                isMoving = false;
+                setTimeout(() => handleCellAction(p), 400);
+                return;
+            }
+
+            let currNode = mapNodes[p.pos];
+            let nextOptions = currNode.next;
+
+            if(nextOptions.length === 0) {
+                // 回到起點
+                p.pos = 0;
+                p.money += 3000;
+                logMessage(`🏛️ ${p.name} 經過正門，領取生活費 <span style="color:var(--text-highlight)">$3,000</span>。`);
+                updatePlayerPositions();
+                setTimeout(() => movePlayerStepByStep(p, stepsRemaining - 1), 250);
+            } 
+            else if(nextOptions.length === 1) {
+                // 單一路線，直接前進
+                let nextId = nextOptions[0];
+                p.pos = nextId;
+                if(nextId === 0) {
                     p.money += 3000;
                     logMessage(`🏛️ ${p.name} 經過正門，領取生活費 <span style="color:var(--text-highlight)">$3,000</span>。`);
                 }
                 updatePlayerPositions();
-                steps++;
-                
-                if(steps >= dice) {
-                    clearInterval(moveInterval);
-                    setTimeout(() => handleCellAction(p), 400);
+                setTimeout(() => movePlayerStepByStep(p, stepsRemaining - 1), 250);
+            } 
+            else {
+                // 遇到岔路分支！
+                if(p.isAI) {
+                    // AI 隨機或策略選擇路徑
+                    let chosenNext = nextOptions[Math.floor(Math.random() * nextOptions.length)];
+                    logMessage(`🤖 ${p.name} 在岔路口選擇了前往 【${mapNodes[chosenNext].name.replace('\n','')}】。`);
+                    p.pos = chosenNext;
+                    updatePlayerPositions();
+                    setTimeout(() => movePlayerStepByStep(p, stepsRemaining - 1), 250);
+                } else {
+                    // 真人玩家：地圖高亮提示並等待點擊
+                    logMessage(`🔀 遇到岔路！請點擊地圖上亮起的格子選擇前進方向...`);
+                    
+                    nextOptions.forEach(optId => {
+                        let cellEl = document.getElementById('cell-' + optId);
+                        cellEl.classList.add('branch-highlight');
+                        
+                        let clickHandler = function() {
+                            // 清除高亮與事件綁定
+                            nextOptions.forEach(id => {
+                                let el = document.getElementById('cell-' + id);
+                                el.classList.remove('branch-highlight');
+                                el.onclick = null;
+                            });
+
+                            p.pos = optId;
+                            updatePlayerPositions();
+                            setTimeout(() => movePlayerStepByStep(p, stepsRemaining - 1), 250);
+                        };
+                        cellEl.onclick = clickHandler;
+                    });
                 }
-            }, 250); // 配合像素風，移動速度稍微調慢一點點，更有逐格感
+            }
         }
 
+        // ================= 7. 格子事件與 AI 決策 =================
         function handleCellAction(p) {
-            const cell = mapData[p.pos];
+            const cell = mapNodes[p.pos];
             logMessage(`📍 ${p.name} 停在 【${cell.name.replace('\n', '')}】`);
 
             if(cell.type === 'property') {
                 if(!cell.owner) {
-                    if(p.money >= cell.price) {
-                        if(confirm(`【${cell.name.replace('\n', '')}】是空地。\n價格: $${cell.price}\n\n要購買嗎？`)) {
-                            p.money -= cell.price;
-                            cell.owner = p.id;
-                            // 改變地產格子的邊框顏色代表擁有權
-                            document.getElementById('cell-' + cell.id).style.border = `4px solid ${p.color}`;
-                            logMessage(`🏠 ${p.name} 買下了 ${cell.name.replace('\n', '')}。`);
-                            showQuote(p.role.quotes.buy);
-                        }
+                    let shouldBuy = false;
+                    if(p.isAI) {
+                        // AI 買地策略：保留 $2,000 以上防身才買
+                        shouldBuy = (p.money >= cell.price + 2000);
                     } else {
-                        logMessage(`❌ ${p.name} 現金不足，無法購買 ${cell.name.replace('\n', '')}。`);
+                        shouldBuy = confirm(`【${cell.name.replace('\n', '')}】是空地。\n價格: $${cell.price}\n\n要購買嗎？`);
                     }
-                } else if(cell.owner !== p.id) {
+
+                    if(shouldBuy && p.money >= cell.price) {
+                        p.money -= cell.price;
+                        cell.owner = p.id;
+                        document.getElementById('cell-' + cell.id).style.border = `4px solid ${p.color}`;
+                        logMessage(`🏠 ${p.name} 買下了 ${cell.name.replace('\n', '')}。`);
+                        showQuote(p.role.quotes.buy);
+                    }
+                } 
+                else if(cell.owner !== p.id) {
                     const owner = players.find(x => x.id === cell.owner);
                     let rent = cell.rent * (cell.level + 1);
                     
-                    // 法學院天賦判定：15% 機率免責
+                    // 法學院天賦判定
                     let avoidRent = false;
                     if(p.roleKey === 'law' && Math.random() < 0.15) {
                         avoidRent = true;
-                        alert("⚖️ 法源依據護體！\n成功找出法律漏洞，免責免罰！");
+                        if(!p.isAI) alert("⚖️ 法源依據護體！免責免罰！");
                         logMessage(`⚖️ ${p.name} 找出法律漏洞，免付過路費！`);
                     }
 
                     if(!avoidRent) {
-                        alert(`踩到 ${owner.name} 的地盤！\n需支付過路費: $${rent}`);
+                        if(!p.isAI) alert(`踩到 ${owner.name} 的地盤！\n需支付過路費: $${rent}`);
                         p.money -= rent;
                         owner.money += rent;
                         logMessage(`💸 ${p.name} 支付 $${rent} 給 ${owner.name}。`);
                         showQuote(p.role.quotes.pay);
                         checkBankrupt(p);
                     }
-                } else {
-                    // 自己地盤升級
+                } 
+                else {
+                    // 自己的地盤升級
                     if(cell.level < 4) {
                         let cost = cell.price * 0.5;
-                        if(p.roleKey === 'soc') cost = cost * 0.8; // 社科院打折 20%
-                        if(confirm(`是否花費 $${cost} 升級【${cell.name.replace('\n', '')}】? (目前 Lv.${cell.level})`)) {
-                            if(p.money >= cost) {
-                                p.money -= cost;
-                                cell.level++;
-                                logMessage(`🔨 ${p.name} 將 ${cell.name.replace('\n', '')} 升級至 Lv.${cell.level}。`);
-                                // 更新畫面上顯示的金額與等級
-                                let el = document.getElementById('cell-' + cell.id);
-                                el.innerHTML = `<span>${cell.name.replace('\n', '<br>')}</span><br><span style="color:#D97706">Lv.${cell.level}</span>`;
-                            } else {
-                                alert("現金不足！");
-                            }
+                        if(p.roleKey === 'soc') cost = cost * 0.8; // 社科院打折
+                        
+                        let shouldUpgrade = false;
+                        if(p.isAI) {
+                            shouldUpgrade = (p.money >= cost + 3000);
+                        } else {
+                            shouldUpgrade = confirm(`升級【${cell.name.replace('\n', '')}】? (費用: $${cost}, 目前 Lv.${cell.level})`);
+                        }
+
+                        if(shouldUpgrade && p.money >= cost) {
+                            p.money -= cost;
+                            cell.level++;
+                            logMessage(`🔨 ${p.name} 將 ${cell.name.replace('\n', '')} 升級至 Lv.${cell.level}。`);
+                            let el = document.getElementById('cell-' + cell.id);
+                            el.innerHTML = `<span>${cell.name.replace('\n', '<br>')}</span><br><span style="color:#D97706">Lv.${cell.level}</span>`;
                         }
                     }
                 }
-            } else if(cell.type === 'points') {
-                p.points += cell.points;
-                logMessage(`🎁 ${p.name} 獲得 ${cell.points} 點數！`);
-            } else if(cell.type === 'bank') {
-                document.getElementById('bank-cash').innerText = `$${p.money}`;
-                document.getElementById('bank-deposit').innerText = `$${p.bank}`;
-                openModal('bank-modal');
-                return; // 等待 Modal 關閉再結算回合
-            } else if(cell.type === 'lotto') {
-                document.getElementById('lotto-pool-display').innerText = `$${lottoPool}`;
-                openModal('lotto-modal');
-                return;
-            } else {
-                // 醫院、監獄、機會命運等模組預留
-                logMessage(`✨ 觸發特殊事件！(進階功能開發中)`);
+            } 
+            else if(cell.type === 'points') {
+                p.points += 30;
+                logMessage(`🎁 ${p.name} 獲得 30 點數！`);
+            } 
+            else if(cell.type === 'bank') {
+                if(p.isAI) {
+                    // AI 銀行策略：現金太多就存，太少就提款
+                    if(p.money > 20000) {
+                        let dep = Math.floor((p.money - 10000) / 2);
+                        p.money -= dep; p.bank += dep;
+                        logMessage(`🏦 ${p.name}(AI) 存入 $${dep} 至銀行。`);
+                    } else if(p.money < 3000 && p.bank > 0) {
+                        let wit = Math.min(p.bank, 5000);
+                        p.money += wit; p.bank -= wit;
+                        logMessage(`🏦 ${p.name}(AI) 從銀行提款 $${wit}。`);
+                    }
+                } else {
+                    document.getElementById('bank-cash').innerText = `$${p.money}`;
+                    document.getElementById('bank-deposit').innerText = `$${p.bank}`;
+                    openModal('bank-modal');
+                    return;
+                }
+            } 
+            else if(cell.type === 'lotto') {
+                if(p.isAI) {
+                    if(p.money >= 3000 && !p.lottoNumber) {
+                        p.money -= 1000;
+                        lottoPool += 1000;
+                        p.lottoNumber = Math.floor(Math.random() * 49) + 1;
+                        logMessage(`🎰 ${p.name}(AI) 下注了大樂透號碼 [${p.lottoNumber}]。`);
+                    }
+                } else {
+                    document.getElementById('lotto-pool-display').innerText = `$${lottoPool}`;
+                    openModal('lotto-modal');
+                    return;
+                }
             }
 
             endTurn();
         }
 
-        // ================= 5. 銀行與大樂透操作 =================
+        // ================= 8. AI 流程控制 & 回合結算 =================
+        function processAITurn() {
+            let p = players[currentPlayerIndex];
+            if(p.status === 'bankrupt' || !p.isAI) return;
+            
+            logMessage(`🤖 輪到 AI <span style="color:${p.color}">${p.name}</span> 的回合...`);
+            setTimeout(() => {
+                rollDice();
+            }, 800);
+        }
+
         function handleBankAction(action) {
             let p = players[currentPlayerIndex];
             let amt = parseInt(document.getElementById('bank-amount').value);
@@ -671,43 +774,36 @@
             p.lottoNumber = num;
             logMessage(`🎰 ${p.name} 購買了樂透號碼 [${num}]。`);
             closeModal('lotto-modal');
-            // closeModal 裡面已經綁定了 endTurn()
         }
 
-        // ================= 6. 回合結算與破產機制 =================
         function checkBankrupt(p) {
             if(p.money < 0 && (p.money + p.bank) >= 0) {
-                alert("現金為負，自動將存款轉為現金抵債！");
                 p.money += p.bank; p.bank = 0;
+                logMessage(`🏦 ${p.name} 自動提取存款抵債！`);
             }
             if(p.money < 0) {
-                // 強制變賣土地 (7折)
-                let properties = mapData.filter(c => c.owner === p.id);
+                let properties = Object.values(mapNodes).filter(c => c.owner === p.id);
                 if(properties.length > 0) {
-                    alert(`現金不足！強制變賣所有土地抵債！`);
                     properties.forEach(c => {
                         p.money += Math.floor(c.price * 0.7);
-                        c.owner = null; 
-                        c.level = 0;
+                        c.owner = null; c.level = 0;
                         let el = document.getElementById('cell-' + c.id);
                         el.style.border = '2px solid var(--border-color)';
                         el.innerHTML = `<span>${c.name.replace('\n', '<br>')}</span><br><span style="color:#D97706">$${c.price}</span>`;
                     });
-                    logMessage(`🔥 ${p.name} 變賣了所有房產斷尾求生！`);
+                    logMessage(`🔥 ${p.name} 強制變賣地產抵債！`);
                 }
                 
                 if(p.money < 0) {
                     p.status = 'bankrupt';
-                    alert(`💀 ${p.name} 正式破產！`);
                     showQuote(p.role.quotes.bankrupt);
-                    logMessage(`💀 ${p.name} 破產退學！`);
+                    logMessage(`💀 ${p.name} 宣告破產退學！`);
                     document.getElementById('token-' + p.id).style.display = 'none';
                 }
             }
         }
 
         function endTurn() {
-            // 尋找下一個未破產的玩家
             let activePlayers = players.filter(p => p.status !== 'bankrupt');
             if(activePlayers.length <= 1) {
                 alert(`🏆 遊戲結束！恭喜 ${activePlayers[0].name} 成為政大首富！`);
@@ -718,22 +814,21 @@
                 currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
             } while(players[currentPlayerIndex].status === 'bankrupt');
 
-            // 如果所有人輪完一圈，進入下一回合
             if(currentPlayerIndex === 0) {
                 globalTurn++;
                 
-                // 結算銀行利息
+                // 銀行利息
                 players.forEach(p => {
                     if(p.status !== 'bankrupt' && p.bank > 0) {
-                        let rate = p.roleKey === 'bus' ? 0.055 : 0.05; // 商院 5.5%，其餘 5%
+                        let rate = p.roleKey === 'bus' ? 0.055 : 0.05;
                         p.bank += Math.floor(p.bank * rate);
                     }
                 });
 
-                // 樂透開獎 (每 10 回合)
+                // 大樂透開獎
                 if(globalTurn % 10 === 0) {
                     let winNum = Math.floor(Math.random() * 49) + 1;
-                    logMessage(`🎉 財政大樂透開獎！本期號碼：<span style="color:var(--text-highlight)">[${winNum}]</span>，總獎金 $${lottoPool}`);
+                    logMessage(`🎉 大樂透開獎！本期號碼：<span style="color:var(--text-highlight)">[${winNum}]</span>，總獎金 $${lottoPool}`);
                     let winners = players.filter(p => p.lottoNumber === winNum && p.status !== 'bankrupt');
                     if(winners.length > 0) {
                         let prize = Math.floor(lottoPool / winners.length);
@@ -742,40 +837,26 @@
                             logMessage(`🏆 恭喜 ${w.name} 中獎，獲得 $${prize}！`);
                             showQuote(w.role.quotes.win);
                         });
-                        lottoPool = 50000; // 重置獎金池
+                        lottoPool = 50000;
                     } else {
-                        logMessage(`沒有人中獎，獎金累積至下期！`);
+                        logMessage(`無人中獎，獎金累積至下期！`);
                     }
                     players.forEach(p => p.lottoNumber = null);
                 }
 
                 if(globalTurn > maxGlobalTurns) {
-                    alert("遊戲時間到！開始結算總資產！");
-                    // 這裡可以寫結算所有土地+現金的邏輯
+                    alert("時間到！結算總資產！");
                     return;
                 }
             }
             
             updateUI();
-            document.getElementById('btn-bag').disabled = false; // 換人後允許開背包
-        }
 
-        // ================= 7. 預留：卡片背包系統 =================
-        function openBag() {
-            let p = players[currentPlayerIndex];
-            let bagUI = document.getElementById('card-list');
-            bagUI.innerHTML = '';
-            
-            if(p.inventory.length === 0) {
-                bagUI.innerHTML = '<p style="color:#9CA3AF;">背包裡空空如也...</p>';
-            } else {
-                p.inventory.forEach(card => {
-                    bagUI.innerHTML += `<button style="margin-bottom: 5px;">使用 ${card.name}</button>`;
-                });
+            // 若下一位是 AI，觸發 AI 回合
+            if(players[currentPlayerIndex].isAI) {
+                setTimeout(processAITurn, 1000);
             }
-            openModal('bag-modal');
         }
-
     </script>
 </body>
 </html>
