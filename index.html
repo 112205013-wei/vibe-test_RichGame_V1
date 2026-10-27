@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>法老王的密室：限時河內塔</title>
+    <!-- 引入帶有神秘古老氛圍的字體 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #d4af37;
+            --dark-bg: #121212;
+            --stone: #3a3a3a;
+            --error: #ff4c4c;
+            --select-glow: #00ffff;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--gold);
+            font-family: 'Noto Serif TC', serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            background-image: radial-gradient(circle at center, #2a2a2a 0%, #000000 100%);
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            text-shadow: 0 0 10px var(--gold);
+            margin-bottom: 10px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        button, select, input {
+            background: var(--stone);
+            color: var(--gold);
+            border: 1px solid var(--gold);
+            padding: 8px 15px;
+            font-family: inherit;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: var(--gold);
+            color: var(--dark-bg);
+            box-shadow: 0 0 10px var(--gold);
+        }
+
+        /* 數據儀表板 */
+        .dashboard {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 40px;
+            font-size: 1.3em;
+            border: 2px solid var(--gold);
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            box-shadow: inset 0 0 20px rgba(212, 175, 55, 0.2);
+        }
+
+        .danger {
+            color: var(--error);
+            text-shadow: 0 0 10px var(--error);
+        }
+
+        /* 塔與盤子區域 */
+        .towers-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            height: 350px;
+            padding: 0 20px;
+            margin-top: 20px;
+        }
+
+        .tower-wrapper {
+            position: relative;
+            width: 30%;
+            height: 100%;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        /* 方尖碑 (柱子) */
+        .pole {
+            position: absolute;
+            bottom: 20px;
+            width: 20px;
+            height: 280px;
+            background: linear-gradient(to right, #4a3b18, #8b6508, #4a3b18);
+            border-radius: 10px 10px 0 0;
+            z-index: 1;
+            border: 1px solid #222;
+        }
+
+        /* 碑座 */
+        .base {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 20px;
+            background: var(--stone);
+            border-radius: 5px;
+            border: 2px solid #222;
+            z-index: 3;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.8);
+        }
+
+        /* 石盤 */
+        .disk {
+            height: 30px;
+            border-radius: 5px;
+            background: linear-gradient(to bottom, #d4af37, #aa8529);
+            border: 2px solid #333;
+            z-index: 2;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+            font-weight: bold;
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.3);
+            margin-bottom: 2px;
+            /* 模擬石板裂紋的簡單效果 */
+            background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.05) 10px, rgba(0,0,0,0.05) 20px);
+        }
+
+        .disk.selected {
+            transform: translateY(-30px);
+            box-shadow: 0 0 20px 5px var(--select-glow);
+            border-color: var(--select-glow);
+        }
+
+        .disk.error {
+            animation: shake 0.4s;
+            box-shadow: 0 0 20px 5px var(--error);
+            border-color: var(--error);
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* 遊戲說明 Modal */
+        .modal {
+            display: none; /* 預設隱藏 */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(3px);
+        }
+
+        .modal-content {
+            background: #1a1a1a;
+            border: 2px solid var(--gold);
+            padding: 30px;
+            max-width: 500px;
+            text-align: left;
+            border-radius: 5px;
+            color: #ddd;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.4);
+            line-height: 1.6;
+        }
+
+        .modal-content h2 {
+            color: var(--gold);
+            margin-top: 0;
+            text-align: center;
+            border-bottom: 1px solid var(--gold);
+            padding-bottom: 10px;
+        }
+
+        .modal-content ul {
+            padding-left: 20px;
+        }
+
+        .modal-content li {
+            margin-bottom: 10px;
+        }
+
+        .close-btn {
+            display: block;
+            margin: 20px auto 0;
+            width: 100%;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>法老王的密室</h1>
+    
+    <div class="controls">
+        <label>封印層數 (石盤): 
+            <select id="disk-select">
+                <option value="3">3 層 (凡人)</option>
+                <option value="4">4 層 (祭司)</option>
+                <option value="5" selected>5 層 (法老)</option>
+                <option value="6">6 層 (半神)</option>
+                <option value="7">7 層 (真神)</option>
+            </select>
+        </label>
+        <label>詛咒倒數 (秒): 
+            <input type="number" id="time-input" value="120" min="0" style="width: 60px;">
+            <small>(填 0 為無限時間)</small>
+        </label>
+        <button onclick="initGame()">重新喚醒機關</button>
+        <button id="rules-btn" onclick="openModal()">📜 閱讀古卷 (遊戲說明)</button>
+    </div>
+
+    <div class="dashboard">
+        <div>詛咒沙漏: <span id="timer-display">0</span> <span id="timer-unit">秒</span></div>
+        <div>移動步數: <span id="moves-display">0</span> / <span id="min-moves-display">0</span></div>
+    </div>
+
+    <div class="towers-container">
+        <!-- 塔 0 -->
+        <div class="tower-wrapper" onclick="handleTowerClick(0)">
+            <div class="pole"></div>
+            <div class="base"></div>
+            <div id="tower-0" style="display: contents;"></div>
+        </div>
+        <!-- 塔 1 -->
+        <div class="tower-wrapper" onclick="handleTowerClick(1)">
+            <div class="pole"></div>
+            <div class="base"></div>
+            <div id="tower-1" style="display: contents;"></div>
+        </div>
+        <!-- 塔 2 -->
+        <div class="tower-wrapper" onclick="handleTowerClick(2)">
+            <div class="pole"></div>
+            <div class="base"></div>
+            <div id="tower-2" style="display: contents;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 遊戲說明 Modal -->
+<div id="rules-modal" class="modal">
+    <div class="modal-content">
+        <h2>📜 解密古卷：河內塔規則</h2>
+        <p>探險家，歡迎來到法老王的密室。若想解除詛咒生還，你必須將所有神聖石盤從<strong>最左側的方尖碑</strong>，完整轉移到<strong>最右側的方尖碑</strong>。</p>
+        <p><strong>【神聖戒律】</strong></p>
+        <ul>
+            <li><strong>一次一盤：</strong> 每次點擊只能移動某座方尖碑「最上方」的一塊石盤。</li>
+            <li><strong>不可犯上：</strong> 體積較大的石盤，絕對不可放置在體積較小的石盤之上，否則將觸發神譴（紅光警告）。</li>
+            <li><strong>操作方式：</strong> 先點擊要移動的石盤（石盤會浮起發出幽藍光），接著點擊目標方尖碑即可放置。再點擊一次發光石盤可取消選取。</li>
+        </ul>
+        <p>注意時間沙漏的流逝，願荷魯斯之眼眷顧你。</p>
+        <button class="close-btn" onclick="closeModal()">我已準備好面對挑戰</button>
+    </div>
+</div>
+
+<script>
+    // 遊戲狀態變數
+    let towers = [[], [], []];
+    let numDisks = 5;
+    let selectedTower = null;
+    let moves = 0;
+    let timerInterval = null;
+    let timeElapsed = 0; // 已過時間 或 剩餘時間
+    let isCountdown = false;
+    let gameActive = false;
+
+    const diskColors = ['#e6c200', '#d4af37', '#c59b27', '#b8860b', '#a67b00', '#8b6508', '#6b4e04'];
+
+    // 初始化遊戲
+    function initGame() {
+        // 清除舊計時器
+        if (timerInterval) clearInterval(timerInterval);
+        
+        numDisks = parseInt(document.getElementById('disk-select').value);
+        let timeInput = parseInt(document.getElementById('time-input').value);
+        
+        towers = [[], [], []];
+        // 產生盤子 (數字越大盤子越大)
+        for (let i = numDisks; i > 0; i--) {
+            towers[0].push(i);
+        }
+        
+        moves = 0;
+        selectedTower = null;
+        gameActive = true;
+        
+        // 處理計時器邏輯
+        if (timeInput > 0) {
+            isCountdown = true;
+            timeElapsed = timeInput;
+            document.getElementById('timer-display').classList.remove('danger');
+        } else {
+            isCountdown = false;
+            timeElapsed = 0;
+            document.getElementById('timer-display').classList.remove('danger');
+        }
+
+        updateDashboard();
+        renderTowers();
+        startTimer();
+    }
+
+    // 啟動計時器
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            if (!gameActive) return;
+
+            if (isCountdown) {
+                timeElapsed--;
+                if (timeElapsed <= 10) {
+                    document.getElementById('timer-display').classList.add('danger');
+                }
+                if (timeElapsed <= 0) {
+                    clearInterval(timerInterval);
+                    gameActive = false;
+                    setTimeout(() => alert("⏳ 詛咒降臨！時間已盡，你被永遠困在密室中了...\n(請點擊「重新喚醒機關」再來一次)"), 100);
+                }
+            } else {
+                timeElapsed++;
+            }
+            updateDashboard();
+        }, 1000);
+    }
+
+    // 更新儀表板數據
+    function updateDashboard() {
+        document.getElementById('timer-display').innerText = timeElapsed;
+        document.getElementById('moves-display').innerText = moves;
+        document.getElementById('min-moves-display').innerText = Math.pow(2, numDisks) - 1;
+    }
+
+    // 處理玩家點擊塔的互動
+    function handleTowerClick(towerIndex) {
+        if (!gameActive) return;
+
+        // 如果尚未選取任何盤子
+        if (selectedTower === null) {
+            if (towers[towerIndex].length > 0) {
+                selectedTower = towerIndex;
+                renderTowers();
+            }
+        } 
+        // 如果點擊同一個塔，取消選取
+        else if (selectedTower === towerIndex) {
+            selectedTower = null;
+            renderTowers();
+        } 
+        // 嘗試移動盤子到新的塔
+        else {
+            let fromTower = towers[selectedTower];
+            let toTower = towers[towerIndex];
+            let diskToMove = fromTower[fromTower.length - 1];
+            let topDiskOnTarget = toTower.length > 0 ? toTower[toTower.length - 1] : null;
+
+            // 檢查規則：大盤不能壓小盤
+            if (topDiskOnTarget !== null && diskToMove > topDiskOnTarget) {
+                // 觸發錯誤動畫
+                triggerErrorAnimation(selectedTower);
+                selectedTower = null;
+                return;
+            }
+
+            // 合法移動
+            toTower.push(fromTower.pop());
+            moves++;
+            selectedTower = null;
+            updateDashboard();
+            renderTowers();
+            checkWin();
+        }
+    }
+
+    // 渲染畫面上的塔與盤子
+    function renderTowers() {
+        for (let i = 0; i < 3; i++) {
+            const towerElement = document.getElementById(`tower-${i}`);
+            // 清空目前的DOM
+            towerElement.innerHTML = '';
+            
+            // 根據陣列繪製盤子
+            towers[i].forEach((diskSize, index) => {
+                const diskDiv = document.createElement('div');
+                diskDiv.className = 'disk';
+                // 計算盤子寬度
+                const widthPercent = 30 + (diskSize / numDisks) * 60; 
+                diskDiv.style.width = `${widthPercent}%`;
+                // 視覺效果微調
+                diskDiv.style.position = 'absolute';
+                diskDiv.style.bottom = `${20 + index * 32}px`; 
+                diskDiv.innerText = diskSize; // 顯示數字方便辨識大小
+
+                // 標記被選取的盤子 (該塔最上面那顆)
+                if (i === selectedTower && index === towers[i].length - 1) {
+                    diskDiv.classList.add('selected');
+                }
+
+                towerElement.appendChild(diskDiv);
+            });
+        }
+    }
+
+    // 錯誤動畫效果 (紅光震動)
+    function triggerErrorAnimation(towerIndex) {
+        const towerElement = document.getElementById(`tower-${towerIndex}`);
+        const disks = towerElement.getElementsByClassName('disk');
+        if (disks.length > 0) {
+            const topDisk = disks[disks.length - 1];
+            topDisk.classList.add('error');
+            setTimeout(() => {
+                topDisk.classList.remove('error');
+                renderTowers(); // 重新渲染以消除動畫類別並復原狀態
+            }, 400);
+        }
+    }
+
+    // 檢查是否勝利
+    function checkWin() {
+        if (towers[2].length === numDisks) {
+            clearInterval(timerInterval);
+            gameActive = false;
+            let resultTime = isCountdown ? (parseInt(document.getElementById('time-input').value) - timeElapsed) : timeElapsed;
+            setTimeout(() => {
+                alert(`🎉 恭喜你解開了法老王的封印！\n\n總共花費：${moves} 步\n使用時間：${resultTime} 秒\n神聖完美步數：${Math.pow(2, numDisks) - 1} 步`);
+            }, 300);
+        }
+    }
+
+    // --- Modal 遊戲說明相關邏輯 ---
+    function openModal() {
+        document.getElementById('rules-modal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('rules-modal').style.display = 'none';
+    }
+
+    // 點擊 Modal 背景也可關閉
+    window.onclick = function(event) {
+        let modal = document.getElementById('rules-modal');
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
+
+    // 網頁載入時啟動遊戲並自動顯示一次規則
+    window.onload = () => {
+        initGame();
+        openModal();
+    };
+</script>
+
+</body>
+</html>
